@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download YouTube Video as MP3</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            padding-bottom: 60px; /* Ensure there's space for the footer */
+            background: #000;
+            color: #fff;
+        }
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #343a40;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+        .contact-icons a {
+            margin: 0 10px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        function startProgress(url) {
+            var source = new EventSource("/progress?url=" + encodeURIComponent(url));
+            source.onmessage = function(event) {
+                var data = JSON.parse(event.data);
+                var progressElement = document.getElementById("progress-bar");
+                var progressText = document.getElementById("progress-text");
+
+                if (data.status === 'downloading') {
+                    var percentage = data.percentage + '%';
+                    progressElement.style.width = percentage;
+                    progressElement.setAttribute("aria-valuenow", data.percentage);
+                    progressText.textContent = `Downloading: ${percentage} (${data.speed}, ETA: ${data.eta})`;
+                } else if (data.status === 'finished') {
+                    progressElement.style.width = '100%';
+                    progressElement.setAttribute("aria-valuenow", 100);
+                    progressText.textContent = 'Download complete.';
+                    progressElement.classList.remove("progress-bar-animated");
+                    source.close();
+                }
+            };
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("download-form").onsubmit = function(event) {
+                event.preventDefault();
+                var url = document.getElementById("url").value;
+                startProgress(url);
+                fetch("/download", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "url=" + encodeURIComponent(url)
+                }).then(response => response.json()).then(data => {
+                    if (data.success) {
+                        window.location.href = "/download_file?filename=" + encodeURIComponent(data.filename);
+                    } else {
+                        document.getElementById("progress-text").innerHTML = data.error;
+                    }
+                });
+            };
+        });
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">YOUTUBE TO MP3</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </nav>
+<!-- Add this code within the <body> tag of your HTML file -->
+    <div class="container mt-5">
+        <!-- Add alert divs for displaying messages -->
+        <div id="start-alert" class="alert alert-info d-none" role="alert">
+            Download has started...
+        </div>
+        <div id="complete-alert" class="alert alert-success d-none" role="alert">
+            Download is complete.
+        </div>
+        <div id="stop-alert" class="alert alert-warning d-none" role="alert">
+            Download has been stopped.
+        </div>
+        
+        <!-- Your existing form and progress bar code -->
+    </div>
+    
+    
+    <div class="container mt-5">
+        <h1 class="text-center">DOWNLOAD YOUTUBE VIDEO AS MP3</h1>
+        <form id="download-form" class="mt-4">
+            <div class="form-group">
+                <label for="url">YouTube URL:</label>
+                <input type="text" id="url" name="url" class="form-control" placeholder="Enter YouTube URL" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Download</button>
+        </form>
+       
+        <div id="progress-text" class="mt-3"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white p-4">
+        <div class="container">
+            <p class="mb-0">&copy; 2024 YouTube to MP3. All rights reserved.</p>
+            <p class="mb-0">Designed with <span class="text-danger">&hearts;</span> by bennie-benjah.</p>
+            <div class="contact-icons mt-2">
+                <a href="https://wa.me/0793639938" target="_blank"><i class="fab fa-whatsapp fa-2x"></i></a>
+                <a href="https://instagram.com/bennie-benjah" target="_blank"><i class="fab fa-instagram fa-2x"></i></a>
+                <a href="https://linkedin.com/in/Benjamin Mutula" target="_blank"><i class="fab fa-linkedin fa-2x"></i></a>
+                <a href="https://github.com/bennie-benjah" target="_blank"><i class="fab fa-github fa-2x"></i></a>
+            </div>
+        </div>
+    </footer>
+<!-- Add this code within the <body> tag of your HTML file -->
+    <script>
+        function startProgress(url) {
+            // Show start alert
+            document.getElementById("start-alert").classList.remove("d-none");
+            // Hide other alerts
+            document.getElementById("complete-alert").classList.add("d-none");
+            document.getElementById("stop-alert").classList.add("d-none");
+    
+            // Hide start alert after 5 seconds
+            setTimeout(function() {
+                document.getElementById("start-alert").classList.add("d-none");
+            }, 5000);
+    
+            // Your existing code for streaming progress
+        }
+    
+        // Modify other parts of your JavaScript code to show/hide alerts accordingly
+    </script>
+    
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>
